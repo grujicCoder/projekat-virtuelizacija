@@ -27,7 +27,7 @@ namespace Client
             {
                 samples = csvReader.ReadSamples(maxRows);
             }
-
+            DisposalTest.RunTest(csvPath);
             if (samples.Count == 0)
             {
                 Console.WriteLine("[CLIENT] Nema validnih uzoraka. Gasenje...");
