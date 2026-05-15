@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Contracts\IMotorService.cs" />
+    <Compile Include="Events\MotorEventArgs.cs" />
     <Compile Include="Exceptions\DataFormatFault.cs" />
     <Compile Include="Exceptions\ValidationFault.cs" />
     <Compile Include="Models\MotorSample.cs" />

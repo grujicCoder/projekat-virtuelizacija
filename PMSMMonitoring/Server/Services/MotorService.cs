@@ -23,6 +23,22 @@ namespace Server.Services
         private StreamWriter _sessionWriter = null;
         private StreamWriter _rejectsWriter = null;
 
+        private readonly MotorEventPublisher _publisher = new MotorEventPublisher();
+        public MotorService()
+        {
+            _publisher.OnTransferStarted += (sender, e) =>
+                Console.WriteLine($"[EVENT] Transfer Started: {e.Message} u {e.Timestamp:HH:mm:ss}");
+
+            _publisher.OnSampleReceived += (sender, e) =>
+                Console.WriteLine($"[EVENT] Sample #{e.SampleNumber} Received: {e.Message}");
+
+            _publisher.OnTransferCompleted += (sender, e) =>
+                Console.WriteLine($"[EVENT] Transfer Completed: {e.Message} u {e.Timestamp:HH:mm:ss}");
+
+            _publisher.OnWarningRaised += (sender, e) =>
+                Console.WriteLine($"[EVENT][WARNING] {e.WarningType}: {e.Message} u {e.Timestamp:HH:mm:ss}");
+        }
+
         public string StartSession(SessionMeta meta)
         {
             if (meta == null)
@@ -59,6 +75,8 @@ namespace Server.Services
             Console.WriteLine($"  Torque     : {meta.Torque}");
             Console.WriteLine($"  Fajl sesije: {_sessionFilePath}");
 
+            _publisher.RaiseTransferStarted($"Sesija zapoceta za Profile_Id: {meta.Profile_Id}");
+
             return "ACK - Sesija uspesno zapoceta. Status: IN_PROGRESS";
         }
 
@@ -84,6 +102,8 @@ namespace Server.Services
 
             _samples.Add(sample);
 
+            _publisher.RaiseSampleReceived($"Uzorak primljen", _samples.Count);
+
             // upisivanje u measurements_session.csv
             _sessionWriter?.WriteLine(
                 $"{sample.U_q},{sample.U_d},{sample.Motor_Speed}," +
@@ -105,6 +125,8 @@ namespace Server.Services
                     new ValidationFault("Nema aktivne sesije.", "session", "aktivna sesija"));
 
             _sessionActive = false;
+
+            _publisher.RaiseTransferCompleted($"Sesija zavrsena. Primljeno {_samples.Count} uzoraka.");
 
             // zatvaranje StreamWriter-a
             _sessionWriter?.Close();
