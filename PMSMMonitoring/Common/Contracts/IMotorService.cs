@@ -24,5 +24,9 @@ namespace Common.Contracts
 
         [OperationContract]
         string EndSession();
+
+        [OperationContract]
+        string GetTransferStatus();
+
     }
 }

@@ -51,8 +51,9 @@ namespace Client
 
                 string startResponse = service.StartSession(meta);
                 Console.WriteLine($"[CLIENT] {startResponse}");
-
-                Console.WriteLine($"\n[CLIENT] Slanje {samples.Count} uzoraka...\n");
+                //sekvencijalni streaming 
+                Console.WriteLine($"\n[CLIENT] Pocetak prenosa {samples.Count} uzoraka...");
+                Console.WriteLine("[CLIENT] Prenos u toku...\n");
 
                 for (int i = 0; i < samples.Count; i++)
                 {
@@ -60,12 +61,20 @@ namespace Client
                     {
                         string response = service.PushSample(samples[i]);
                         Console.WriteLine($"[CLIENT] {response}");
+
+                        if ((i + 1) % 10 == 0)
+                        {
+                            string status = service.GetTransferStatus();
+                            Console.WriteLine($"[SERVER STATUS] {status}");
+                        }
                     }
                     catch (FaultException ex)
                     {
                         Console.WriteLine($"[CLIENT] Greska za uzorak #{i + 1}: {ex.Message}");
                     }
                 }
+
+                Console.WriteLine("\n[CLIENT] Zavrsen prenos svih uzoraka!");
 
                 string endResponse = service.EndSession();
                 Console.WriteLine($"\n[CLIENT] {endResponse}");
