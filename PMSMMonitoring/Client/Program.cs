@@ -27,14 +27,13 @@ namespace Client
             {
                 samples = csvReader.ReadSamples(maxRows);
             }
-            DisposalTest.RunTest(csvPath);
             if (samples.Count == 0)
             {
                 Console.WriteLine("[CLIENT] Nema validnih uzoraka. Gasenje...");
                 Console.ReadLine();
                 return;
             }
-
+            DisposalTest.RunTest(csvPath);
             ChannelFactory<IMotorService> factory = null;
             IMotorService service = null;
 
@@ -45,9 +44,6 @@ namespace Client
 
                 SessionMeta meta = new SessionMeta
                 {
-                    U_q = samples[0].U_q,
-                    U_d = samples[0].U_d,
-                    Motor_Speed = samples[0].Motor_Speed,
                     Profile_Id = samples[0].Profile_Id,
                     Ambient = samples[0].Ambient,
                     Torque = samples[0].Torque
