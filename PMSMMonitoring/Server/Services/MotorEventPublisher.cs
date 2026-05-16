@@ -14,6 +14,11 @@ namespace Server.Services
         public event EventHandler<TransferEventArgs> OnTransferCompleted;
         public event EventHandler<WarningEventArgs> OnWarningRaised;
 
+        public event EventHandler<WarningEventArgs> OnVoltageSpikeQ;
+        public event EventHandler<WarningEventArgs> OnVoltageSpikeD;
+        public event EventHandler<WarningEventArgs> OnSpeedSpike;
+        public event EventHandler<WarningEventArgs> OnOutOfBandWarning;
+
         public void RaiseTransferStarted(string message)
         {
             OnTransferStarted?.Invoke(this, new TransferEventArgs(message));
@@ -32,6 +37,26 @@ namespace Server.Services
         public void RaiseWarning(string message, string warningType)
         {
             OnWarningRaised?.Invoke(this, new WarningEventArgs(message, warningType));
+        }
+
+        public void RaiseVoltageSpikeQ(string message, string direction)
+        {
+            OnVoltageSpikeQ?.Invoke(this, new WarningEventArgs(message, $"VoltageSpikeQ - {direction}"));
+        }
+
+        public void RaiseVoltageSpikeD(string message, string direction)
+        {
+            OnVoltageSpikeD?.Invoke(this, new WarningEventArgs(message, $"VoltageSpikeD - {direction}"));
+        }
+
+        public void RaiseSpeedSpike(string message, string direction)
+        {
+            OnSpeedSpike?.Invoke(this, new WarningEventArgs(message, $"SpeedSpike - {direction}"));
+        }
+
+        public void RaiseOutOfBandWarning(string message, string direction)
+        {
+            OnOutOfBandWarning?.Invoke(this, new WarningEventArgs(message, $"OutOfBandWarning - {direction}"));
         }
     }
 }

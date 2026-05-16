@@ -3,6 +3,7 @@ using Common.Exceptions;
 using Common.Models;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.ServiceModel;
@@ -24,6 +25,16 @@ namespace Server.Services
         private StreamWriter _rejectsWriter = null;
 
         private readonly MotorEventPublisher _publisher = new MotorEventPublisher();
+
+        private double _prevUq = double.NaN;
+        private double _prevUd = double.NaN;
+        private double _prevSpeed = double.NaN;
+        private double _speedSum = 0;
+        private int _speedCount = 0;
+
+        private double _udThreshold;
+        private double _uqThreshold;
+        private double _speedThreshold;
         public MotorService()
         {
             _publisher.OnTransferStarted += (sender, e) =>
@@ -37,6 +48,28 @@ namespace Server.Services
 
             _publisher.OnWarningRaised += (sender, e) =>
                 Console.WriteLine($"[EVENT][WARNING] {e.WarningType}: {e.Message} u {e.Timestamp:HH:mm:ss}");
+
+            _udThreshold = double.Parse(
+                ConfigurationManager.AppSettings["Ud_threshold"] ?? "5.0",
+                System.Globalization.CultureInfo.InvariantCulture);
+            _uqThreshold = double.Parse(
+                ConfigurationManager.AppSettings["Uq_threshold"] ?? "5.0",
+                System.Globalization.CultureInfo.InvariantCulture);
+            _speedThreshold = double.Parse(
+                ConfigurationManager.AppSettings["Speed_threshold"] ?? "50.0",
+                System.Globalization.CultureInfo.InvariantCulture);
+
+            _publisher.OnVoltageSpikeQ += (sender, e) =>
+                Console.WriteLine($"[EVENT][UPOZORENJE] {e.WarningType}: {e.Message}");
+
+            _publisher.OnVoltageSpikeD += (sender, e) =>
+                Console.WriteLine($"[EVENT][UPOZORENJE] {e.WarningType}: {e.Message}");
+
+            _publisher.OnSpeedSpike += (sender, e) =>
+                Console.WriteLine($"[EVENT][UPOZORENJE] {e.WarningType}: {e.Message}");
+
+            _publisher.OnOutOfBandWarning += (sender, e) =>
+                Console.WriteLine($"[EVENT][UPOZORENJE] {e.WarningType}: {e.Message}");
         }
 
         public string StartSession(SessionMeta meta)
@@ -103,6 +136,31 @@ namespace Server.Services
             _samples.Add(sample);
 
             _publisher.RaiseSampleReceived($"Uzorak primljen", _samples.Count);
+
+            if (!double.IsNaN(_prevUq))
+            {
+                double deltaUq = sample.U_q - _prevUq;
+                if (Math.Abs(deltaUq) > _uqThreshold)
+                {
+                    string direction = deltaUq > 0 ? "iznad ocekivanog" : "ispod ocekivanog";
+                    _publisher.RaiseVoltageSpikeQ(
+                        $"DeltaUq={deltaUq:F4} > prag={_uqThreshold}", direction);
+                }
+            }
+
+            if (!double.IsNaN(_prevUd))
+            {
+                double deltaUd = sample.U_d - _prevUd;
+                if (Math.Abs(deltaUd) > _udThreshold)
+                {
+                    string direction = deltaUd > 0 ? "iznad ocekivanog" : "ispod ocekivanog";
+                    _publisher.RaiseVoltageSpikeD(
+                        $"DeltaUd={deltaUd:F4} > prag={_udThreshold}", direction);
+                }
+            }
+
+            _prevUq = sample.U_q;
+            _prevUd = sample.U_d;
 
             // upisivanje u measurements_session.csv
             _sessionWriter?.WriteLine(
