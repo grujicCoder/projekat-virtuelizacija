@@ -140,6 +140,17 @@ namespace Server.Services
 
             _samples.Add(sample);
 
+            // upisivanje u measurements_session.csv
+            _sessionWriter?.WriteLine(
+                $"{sample.U_q},{sample.U_d},{sample.Motor_Speed}," +
+                $"{sample.Profile_Id},{sample.Ambient},{sample.Torque}");
+            _sessionWriter?.Flush();
+
+            Console.WriteLine($"[SERVER] Primljen uzorak #{_samples.Count} " +
+                $"| Speed: {sample.Motor_Speed:F2} " +
+                $"| Uq: {sample.U_q:F2} " +
+                $"| Ud: {sample.U_d:F2}");
+
             _publisher.RaiseSampleReceived($"Uzorak primljen", _samples.Count);
 
             if (!double.IsNaN(_prevUq))
@@ -166,17 +177,6 @@ namespace Server.Services
 
             _prevUq = sample.U_q;
             _prevUd = sample.U_d;
-
-            // upisivanje u measurements_session.csv
-            _sessionWriter?.WriteLine(
-                $"{sample.U_q},{sample.U_d},{sample.Motor_Speed}," +
-                $"{sample.Profile_Id},{sample.Ambient},{sample.Torque}");
-            _sessionWriter?.Flush();
-
-            Console.WriteLine($"[SERVER] Primljen uzorak #{_samples.Count} " +
-                $"| Speed: {sample.Motor_Speed:F2} " +
-                $"| Uq: {sample.U_q:F2} " +
-                $"| Ud: {sample.U_d:F2}");
 
             if (!double.IsNaN(_prevSpeed))
             {

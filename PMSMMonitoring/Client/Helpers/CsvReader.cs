@@ -137,8 +137,8 @@ namespace Client.Helpers
             {
                 if (disposing)
                 {
-                    _reader?.Close();
-                    _logWriter?.Close();
+                    _reader?.Dispose();
+                    _logWriter?.Dispose();
                     Console.WriteLine("[CLIENT] CsvReader resursi oslobodjeni.");
                 }
                 _disposed = true;
