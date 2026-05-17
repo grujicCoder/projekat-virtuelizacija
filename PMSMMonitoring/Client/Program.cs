@@ -44,6 +44,9 @@ namespace Client
 
                 SessionMeta meta = new SessionMeta
                 {
+                    U_q = samples[0].U_q,
+                    U_d = samples[0].U_d,
+                    Motor_Speed = samples[0].Motor_Speed,
                     Profile_Id = samples[0].Profile_Id,
                     Ambient = samples[0].Ambient,
                     Torque = samples[0].Torque

@@ -11,6 +11,12 @@ namespace Common.Models
     public class SessionMeta
     {
         [DataMember]
+        public double U_q { get; set; }
+        [DataMember]
+        public double U_d { get; set; }
+        [DataMember]
+        public double Motor_Speed { get; set; }
+        [DataMember]
         public int Profile_Id { get; set; }
 
         [DataMember]
