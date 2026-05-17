@@ -80,6 +80,11 @@ namespace Server.Services
 
             _currentMeta = meta;
             _samples = new List<MotorSample>();
+            _prevUq = double.NaN;
+            _prevUd = double.NaN;
+            _prevSpeed = double.NaN;
+            _speedSum = 0;
+            _speedCount = 0;
             _sessionActive = true;
 
             string basePath = AppDomain.CurrentDomain.BaseDirectory;
@@ -172,6 +177,41 @@ namespace Server.Services
                 $"| Speed: {sample.Motor_Speed:F2} " +
                 $"| Uq: {sample.U_q:F2} " +
                 $"| Ud: {sample.U_d:F2}");
+
+            if (!double.IsNaN(_prevSpeed))
+            {
+                double deltaSpeed = sample.Motor_Speed - _prevSpeed;
+                if (Math.Abs(deltaSpeed) > _speedThreshold)
+                {
+                    string direction = deltaSpeed > 0 ? "iznad ocekivanog" : "ispod ocekivanog";
+                    _publisher.RaiseSpeedSpike(
+                        $"DeltaSpeed={deltaSpeed:F4} > prag={_speedThreshold}", direction);
+                }
+            }
+
+            _prevSpeed = sample.Motor_Speed;
+            _speedSum += sample.Motor_Speed;
+            _speedCount++;
+            double speedMean = _speedSum / _speedCount;
+
+            if (_speedCount > 1)
+            {
+                double lowerBound = 0.75 * speedMean;
+                double upperBound = 1.25 * speedMean;
+
+                if (sample.Motor_Speed < lowerBound)
+                {
+                    _publisher.RaiseOutOfBandWarning(
+                        $"Speed={sample.Motor_Speed:F4} ispod 75% proseka ({speedMean:F4})",
+                        "ispod ocekivane vrednosti");
+                }
+                else if (sample.Motor_Speed > upperBound)
+                {
+                    _publisher.RaiseOutOfBandWarning(
+                        $"Speed={sample.Motor_Speed:F4} iznad 125% proseka ({speedMean:F4})",
+                        "iznad ocekivane vrednosti");
+                }
+            }
 
             return $"ACK - Uzorak #{_samples.Count} primljen. Status: IN_PROGRESS";
         }
