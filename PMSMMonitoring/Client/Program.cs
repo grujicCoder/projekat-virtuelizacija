@@ -1,13 +1,14 @@
-﻿using System;
+﻿using Client.Helpers;
+using Common.Contracts;
+using Common.Exceptions;
+using Common.Models;
+using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
+using System.ServiceModel;
 using System.Text;
 using System.Threading.Tasks;
-using Client.Helpers;
-using Common.Contracts;
-using Common.Models;
-using System.Configuration;
-using System.ServiceModel;
 
 namespace Client
 {
@@ -71,6 +72,10 @@ namespace Client
                             Console.WriteLine($"[SERVER STATUS] {status}");
                         }
                     }
+                    catch (FaultException<ValidationFault> ex)
+                    {
+                        Console.WriteLine($"[CLIENT] Validacija greska za uzorak #{i + 1}: {ex.Detail.Message}");
+                    }
                     catch (FaultException ex)
                     {
                         Console.WriteLine($"[CLIENT] Greska za uzorak #{i + 1}: {ex.Message}");
@@ -83,11 +88,6 @@ namespace Client
                 Console.WriteLine($"\n[CLIENT] {endResponse}");
 
                 factory.Close();
-            }
-            catch (FaultException ex)
-            {
-                Console.WriteLine($"[CLIENT] FaultException: {ex.Message}");
-                factory?.Abort();
             }
             catch (Exception ex)
             {

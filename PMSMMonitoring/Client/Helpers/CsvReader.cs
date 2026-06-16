@@ -97,9 +97,6 @@ namespace Client.Helpers
                 double torque = double.Parse(parts[11].Trim(), CultureInfo.InvariantCulture);
                 int profile_id = int.Parse(parts[12].Trim(), CultureInfo.InvariantCulture);
 
-                if (motor_speed < 0)
-                    return null;
-
                 return new MotorSample
                 {
                     U_q = u_q,
